@@ -12,16 +12,16 @@ Complete REST API Representing most of REST Architecture concepts
 
 ## REST Concepts
 - [x] HTTP Methods
-- [-] HTTP Codes
-- [-] HATEOAS
-- [-] Authentication
-- [-] Autorization
+- [ ] HTTP Codes
+- [ ] HATEOAS
+- [ ] Authentication
+- [ ] Autorization
 
 ## Other Concepts
 - [ - ] Error Handling
-- [-] Logging
-- [-] Containerization
-- [-] Monitoring
-- [-] Pagination
-- [-] Documentation
+- [ ] Logging
+- [ ] Containerization
+- [ ] Monitoring
+- [ ] Pagination
+- [ ] Documentation
 
