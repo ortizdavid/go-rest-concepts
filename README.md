@@ -12,8 +12,8 @@ Complete REST API Representing most of REST Architecture concepts
 
 ## REST Concepts
 - [x] HTTP Methods
-- [ ] HTTP Codes
-- [ ] HATEOAS
+- [x] HTTP Codes
+- [x] HATEOAS
 - [ ] Authentication
 - [ ] Autorization
 
