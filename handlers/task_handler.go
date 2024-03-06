@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/ortizdavid/go-nopain/conversion"
+	"github.com/ortizdavid/go-rest-concepts/entities"
 	"github.com/ortizdavid/go-rest-concepts/models"
 )
 
@@ -17,6 +19,7 @@ func (th TaskHandler) Routes(router *http.ServeMux) {
 	router.HandleFunc("POST /tasks", th.createTask)
 	router.HandleFunc("PUT /tasks/{id}", th.updateTask)
 	router.HandleFunc("DELETE /tasks/{id}", th.deleteTask)
+	router.HandleFunc("POST /tasks/create-default", th.CreateDefaultTasks)
 }
 
 
@@ -24,11 +27,11 @@ func (th TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
 	tasks, err := models.TaskModel{}.FindAll()
 	count := len(tasks)
 	if err != nil {
-		WriteError(w, r, err.Error(), http.StatusInternalServerError)
+		WriteError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if count == 0 {
-		WriteError(w, r, "Tasks not found", http.StatusNotFound)
+		WriteError(w, "Tasks not found", http.StatusNotFound)
 		return
 	}
 	WriteJSON(w, r, "Tasks Found Sucessfuly", http.StatusOK, tasks, count)
@@ -42,11 +45,11 @@ func (th TaskHandler) getTask(w http.ResponseWriter, r *http.Request) {
 	id := conversion.StringToInt(rawId)
 	task, err := taskModel.FindById(id)
 	if err != nil {
-		WriteError(w, r, err.Error(), http.StatusInternalServerError)
+		WriteError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	if !taskModel.ExistsById(id) {
-		WriteError(w, r, "Task with id: "+rawId+" not exists", http.StatusNotFound)
+		WriteError(w, "Task with id: "+rawId+" not exists", http.StatusNotFound)
 		return
 	}
 	WriteJSON(w, r, "Task found", http.StatusOK, task, 1)
@@ -54,7 +57,19 @@ func (th TaskHandler) getTask(w http.ResponseWriter, r *http.Request) {
 
 
 func (th TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
-	WriteJSON(w, r, "Task created", http.StatusCreated, nil, 1)
+	var taskModel models.TaskModel
+	var newTask entities.Task
+
+	if err := json.NewDecoder(r.Body).Decode(&newTask); err != nil {
+		WriteError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if err := taskModel.Create(newTask); err != nil {
+		WriteError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	WriteJSON(w, r, "Task created", http.StatusCreated, newTask, 1)
 }
 
 
@@ -66,3 +81,10 @@ func (th TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 func (th TaskHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Delete a Task")
 }
+
+
+func (th TaskHandler) CreateDefaultTasks(w http.ResponseWriter, r *http.Request) {
+	count, _ := models.TaskModel{}.CreateDefault()
+	WriteJSON(w, r, "Tasks added created", http.StatusCreated, nil, count)
+}
+

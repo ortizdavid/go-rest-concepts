@@ -24,7 +24,7 @@ func WriteJSON(w http.ResponseWriter, r *http.Request, message string, statusCod
 	}
 }
 
-func WriteError(w http.ResponseWriter, r *http.Request, message string, statusCode int) {
+func WriteError(w http.ResponseWriter, message string, statusCode int) {
 	w.Header().Set("Content-type", "application/json")
 	w.WriteHeader(statusCode)
 	response := jsonResponse{
