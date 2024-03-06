@@ -7,14 +7,21 @@ import (
 
 
 const (
-	validToken = "token12345"
-	validApiKey = "key12345"
+	DEFAULT_TOKEN = "token12345"
+	DEFAULT_API_KEY = "key12345"
 )
 
 
+// Token Based Authentication
 func TokenAuthMiddleware(next http.Handler) http.Handler {
+	validToken := DEFAULT_TOKEN
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authorization")
+		if token == "" {
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Fprintf(w, "Unauthoried. Token missing")
+			return
+		}
 		if token != validToken {
 			w.WriteHeader(http.StatusUnauthorized)
 			fmt.Fprintf(w, "Unauthorized. Invalid Token")
@@ -25,7 +32,9 @@ func TokenAuthMiddleware(next http.Handler) http.Handler {
 }
 
 
+// API KEY Authentication
 func ApiKeyAuthMiddleware(next http.Handler) http.Handler {
+	validApiKey := DEFAULT_API_KEY
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		apiKey := r.Header.Get("X-API-Key")
 		if apiKey == "" {
@@ -43,6 +52,7 @@ func ApiKeyAuthMiddleware(next http.Handler) http.Handler {
 }
 
 
+// JWT Authentication
 func JwtAuthMiddleWare(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		next.ServeHTTP(w, r)
