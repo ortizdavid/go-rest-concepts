@@ -18,7 +18,7 @@ Complete REST API Representing most of REST Architecture concepts
 - [ ] Autorization
 
 ## Other Concepts
-- [ - ] Error Handling
+- [ ] Error Handling
 - [ ] Logging
 - [ ] Containerization
 - [ ] Monitoring
