@@ -11,14 +11,14 @@ Complete REST API Representing most of REST Architecture concepts
 - Task Management
 
 ## REST Concepts
-- [-] HTTP Methods
+- [x] HTTP Methods
 - [-] HTTP Codes
 - [-] HATEOAS
 - [-] Authentication
 - [-] Autorization
 
 ## Other Concepts
-- [-] Error Handling
+- [ - ] Error Handling
 - [-] Logging
 - [-] Containerization
 - [-] Monitoring
