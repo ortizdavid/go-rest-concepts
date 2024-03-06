@@ -20,11 +20,13 @@ func (th TaskHandler) Routes(router *http.ServeMux) {
 	router.HandleFunc("PUT /tasks/{id}", th.updateTask)
 	router.HandleFunc("DELETE /tasks/{id}", th.deleteTask)
 	router.HandleFunc("POST /tasks/create-default", th.CreateDefaultTasks)
+	router.Handle("GET /protected-apikey", ApiKeyAuthMiddleware(http.HandlerFunc(th.protectedApiKey)))
 }
 
 
 func (th TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
-	tasks, err := models.TaskModel{}.FindAll()
+	var taskModel models.TaskModel
+	tasks, err := taskModel.FindAll()
 	count := len(tasks)
 	if err != nil {
 		WriteError(w, err.Error(), http.StatusInternalServerError)
@@ -35,7 +37,6 @@ func (th TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	WriteJSON(w, r, "Tasks Found Sucessfuly", http.StatusOK, tasks, count)
-
 }
 
 
@@ -44,6 +45,7 @@ func (th TaskHandler) getTask(w http.ResponseWriter, r *http.Request) {
 	rawId := r.PathValue("id")
 	id := conversion.StringToInt(rawId)
 	task, err := taskModel.FindById(id)
+
 	if err != nil {
 		WriteError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -64,7 +66,6 @@ func (th TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
 		WriteError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-
 	if err := taskModel.Create(newTask); err != nil {
 		WriteError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -88,3 +89,6 @@ func (th TaskHandler) CreateDefaultTasks(w http.ResponseWriter, r *http.Request)
 	WriteJSON(w, r, "Tasks added created", http.StatusCreated, nil, count)
 }
 
+func (th TaskHandler) protectedApiKey(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "Accessed API Key Resource")
+}

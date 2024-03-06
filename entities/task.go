@@ -1,6 +1,5 @@
 package entities
 
-
 type Task struct {
 	TaskId    	int
 	UserId    	int
