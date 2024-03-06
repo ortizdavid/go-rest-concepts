@@ -3,7 +3,7 @@
 Complete REST API Representing most of REST Architecture concepts
 
 ## Tools
-- Language: **Golang 1.21**
+- Language: **Golang 1.22**
 - Database: PostgreSQL
 - Routing Library: net/http
 
