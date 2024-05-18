@@ -86,9 +86,9 @@ func (th TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
 func (th TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 	var taskModel models.TaskModel
 	var updatedTask entities.Task
-
 	id := r.PathValue("id")
 	taskId := conversion.StringToInt(id)
+	
 	task, err := taskModel.FindById(taskId)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)

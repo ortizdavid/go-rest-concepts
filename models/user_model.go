@@ -48,6 +48,16 @@ func (UserModel) Update(user entities.User) (*gorm.DB, error) {
 	return result, nil
 }
 
+func (UserModel) Delete(user entities.User) (*gorm.DB, error) {
+	db, _ := config.ConnectDB()
+	defer config.DisconnectDB(db)
+	result := db.Delete(&user)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return result, nil
+}
+
 func (UserModel) FindById(id int) (entities.User, error) {
 	db, _ := config.ConnectDB()
 	defer config.DisconnectDB(db)

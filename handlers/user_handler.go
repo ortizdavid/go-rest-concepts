@@ -88,9 +88,49 @@ func (UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 
 
 func (UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
+	var userModel models.UserModel
+	var updatedUser entities.User
+	id := r.PathValue("id")
+	userId := conversion.StringToInt(id)
+
+	user, err := userModel.FindById(userId)
+	if err != nil {
+		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)
+		return
+	}
+	if err := serialization.DecodeJson(r.Body, updatedUser); err != nil {
+		httputils.WriteJsonError(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	user.UserName = updatedUser.UserName
+	user.Password = encryption.HashPassword(updatedUser.Password)
+	user.Active = updatedUser.Active
+	user.UpdatedAt = time.Now()
+
+	_, err = userModel.Update(user)
+	if err != nil {
+		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	httputils.WriteJsonSimple(w, http.StatusOK, updatedUser)
 }
 
 
 func (UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
-	
+	var userModel models.UserModel
+	id := r.PathValue("id")
+	userId := conversion.StringToInt(id)
+
+	user, err := userModel.FindById(userId)
+	if err != nil {
+		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)
+		return 
+	}
+	_, err = userModel.Delete(user)
+	if err != nil {
+		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	httputils.WriteJsonSimple(w, http.StatusNoContent, nil)
 }
