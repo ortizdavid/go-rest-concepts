@@ -1,9 +1,12 @@
 package handlers
 
-import "net/http"
+import (
+	"net/http"
+	"gorm.io/gorm"
+)
 
-func RegisterRoutes(router* http.ServeMux) {
-	TaskHandler{}.Routes(router)
-	UserHandler{}.Routes(router)
-	ReportHandler{}.Routes(router)
+func RegisterRoutes(router* http.ServeMux, db *gorm.DB) {
+	NewTaskHandler(db).Routes(router)
+	NewUserHandler(db).Routes(router)
+	NewReportHandler(db).Routes(router)
 }

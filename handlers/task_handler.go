@@ -12,29 +12,36 @@ import (
 	"github.com/ortizdavid/go-nopain/serialization"
 	"github.com/ortizdavid/go-rest-concepts/entities"
 	"github.com/ortizdavid/go-rest-concepts/models"
+	"gorm.io/gorm"
 )
 
 
 type TaskHandler struct {
+	taskModel models.TaskModel
 }
 
 
-func (th TaskHandler) Routes(router *http.ServeMux) {
-	router.HandleFunc("GET /api/tasks", th.getAllTasks)
-	router.HandleFunc("GET /api/tasks/{id}", th.getTask)
-	router.HandleFunc("POST /api/tasks", th.createTask)
-	router.HandleFunc("PUT /api/tasks/{id}", th.updateTask)
-	router.HandleFunc("DELETE /api/tasks/{id}", th.deleteTask)
-	router.HandleFunc("POST /api/tasks/import-csv", th.importTasksCSV)
-
-	router.HandleFunc("GET /api/tasks-xml", th.getAllTasksXml)
-	router.HandleFunc("GET /api/tasks-xml/{id}", th.getTaskXml)
+func NewTaskHandler(db *gorm.DB) *TaskHandler {
+	return &TaskHandler{
+		taskModel: *models.NewTaskModel(db),
+	}
 }
 
 
-func (th TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
-	var taskModel models.TaskModel
-	tasks, err := taskModel.FindAll()
+func (h TaskHandler) Routes(router *http.ServeMux) {
+	router.HandleFunc("GET /api/tasks", h.getAllTasks)
+	router.HandleFunc("GET /api/tasks/{id}", h.getTask)
+	router.HandleFunc("POST /api/tasks", h.createTask)
+	router.HandleFunc("PUT /api/tasks/{id}", h.updateTask)
+	router.HandleFunc("DELETE /api/tasks/{id}", h.deleteTask)
+	router.HandleFunc("POST /api/tasks/import-csv", h.importTasksCSV)
+	router.HandleFunc("GET /api/tasks-xml", h.getAllTasksXml)
+	router.HandleFunc("GET /api/tasks-xml/{id}", h.getTaskXml)
+}
+
+
+func (h TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
+	tasks, err := h.taskModel.FindAll()
 	count := len(tasks)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
@@ -44,26 +51,24 @@ func (th TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
 		httputils.WriteJsonError(w, "Tasks not found", http.StatusNotFound)
 		return
 	}
-	httputils.WriteJson(w, http.StatusOK, tasks, count)
+	httputils.WriteJson(w, http.StatusOK, tasks)
 }
 
 
-func (th TaskHandler) getTask(w http.ResponseWriter, r *http.Request) {
-	var taskModel models.TaskModel
+func (h TaskHandler) getTask(w http.ResponseWriter, r *http.Request) {
 	rawId := r.PathValue("id")
 	id := conversion.StringToInt(rawId)
-	task, err := taskModel.FindById(id)
+	task, err := h.taskModel.FindById(id)
 
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	httputils.WriteJsonSimple(w, http.StatusOK, task)
+	httputils.WriteJson(w, http.StatusOK, task)
 }
 
 
-func (th TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
-	var taskModel models.TaskModel
+func (h TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
 	var task entities.Task
 
 	if err := serialization.DecodeJson(r.Body, &task); err != nil {
@@ -74,22 +79,21 @@ func (th TaskHandler) createTask(w http.ResponseWriter, r *http.Request) {
 	task.UniqueId = encryption.GenerateUUID()
 	task.CreatedAt = time.Now()
 	task.UpdatedAt = time.Now()
-	_, err := taskModel.Create(task)
+	_, err := h.taskModel.Create(task)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	httputils.WriteJsonSimple(w, http.StatusCreated, task)
+	httputils.WriteJson(w, http.StatusCreated, task)
 }
 
 
-func (th TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
-	var taskModel models.TaskModel
+func (h TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 	var updatedTask entities.Task
 	id := r.PathValue("id")
 	taskId := conversion.StringToInt(id)
 	
-	task, err := taskModel.FindById(taskId)
+	task, err := h.taskModel.FindById(taskId)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)
 		return
@@ -106,37 +110,35 @@ func (th TaskHandler) updateTask(w http.ResponseWriter, r *http.Request) {
 	task.Description = updatedTask.Description
 	task.UpdatedAt = time.Now()
 	
-	_, err = taskModel.Update(task)
+	_, err = h.taskModel.Update(task)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	httputils.WriteJsonSimple(w, http.StatusOK, task)
+	httputils.WriteJson(w, http.StatusOK, task)
 }
 
 
-func (th TaskHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
-	var taskModel models.TaskModel
+func (h TaskHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	taskId := conversion.StringToInt(id)
-	task, err := taskModel.FindById(taskId)
+	task, err := h.taskModel.FindById(taskId)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	_, err = taskModel.Delete(task)
+	_, err = h.taskModel.Delete(task)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	httputils.WriteJsonSimple(w, http.StatusNoContent, nil)
+	httputils.WriteJson(w, http.StatusNoContent, nil)
 	fmt.Fprintf(w, "Delete a task")
 }
 
 
-func (th TaskHandler) getAllTasksXml(w http.ResponseWriter, r *http.Request) {
-	var taskModel models.TaskModel
-	tasks, err := taskModel.FindAll()
+func (h TaskHandler) getAllTasksXml(w http.ResponseWriter, r *http.Request) {
+	tasks, err := h.taskModel.FindAll()
 	count := len(tasks)
 	if err != nil {
 		httputils.WriteXmlError(w, err.Error(), http.StatusInternalServerError)
@@ -146,34 +148,31 @@ func (th TaskHandler) getAllTasksXml(w http.ResponseWriter, r *http.Request) {
 		httputils.WriteXmlError(w, "Tasks not found", http.StatusNotFound)
 		return
 	}
-	httputils.WriteXml(w, http.StatusOK, tasks, count)
+	httputils.WriteXml(w, http.StatusOK, tasks)
 }
 
 
-func (th TaskHandler) getTaskXml(w http.ResponseWriter, r *http.Request) {
-	var taskModel models.TaskModel
+func (h TaskHandler) getTaskXml(w http.ResponseWriter, r *http.Request) {
 	rawId := r.PathValue("id")
 	id := conversion.StringToInt(rawId)
 
-	task, err := taskModel.FindById(id)
+	task, err := h.taskModel.FindById(id)
 	if err != nil {
 		httputils.WriteXmlError(w, err.Error(), http.StatusNotFound)
 		return
 	}
 	
-	exists, _ := taskModel.ExistsRecord("task_id", id)
+	exists, _ := h.taskModel.ExistsRecord("task_id", id)
 	if !exists {
-		httputils.WriteXmlError(w, "Task with id: "+rawId+" not exists", http.StatusNotFound)
+		httputils.WriteXmlError(w, "Task wih id: "+rawId+" not exists", http.StatusNotFound)
 		return
 	}
-	httputils.WriteXmlSimple(w, http.StatusOK, task)
+	httputils.WriteXml(w, http.StatusOK, task)
 }
 
 
 
-func (th TaskHandler) importTasksCSV(w http.ResponseWriter, r *http.Request) {
-	var taskModel models.TaskModel
-	
+func (h TaskHandler) importTasksCSV(w http.ResponseWriter, r *http.Request) {
 	csvFile, _, err := r.FormFile("csv_file")
 	if err != nil {
 		httputils.WriteJsonError(w, "could not upload csv", http.StatusInternalServerError)
@@ -191,11 +190,11 @@ func (th TaskHandler) importTasksCSV(w http.ResponseWriter, r *http.Request) {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	_, err = taskModel.CreateBatch(tasksCsv)
+	_, err = h.taskModel.CreateBatch(tasksCsv)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	httputils.WriteJson(w, http.StatusCreated, nil, len(tasksCsv))
+	httputils.WriteJson(w, http.StatusCreated, nil)
 }
 

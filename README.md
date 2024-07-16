@@ -3,7 +3,7 @@
 Complete REST API Representing most of REST Architecture concepts
 
 ## Tools
-- Language: **Golang 1.22**
+- Golang: **Version 1.22**
 - Database: MySQL
 - Routing Library: net/http
 
@@ -13,7 +13,7 @@ Complete REST API Representing most of REST Architecture concepts
 ## REST Concepts
 - [x] HTTP Methods
 - [x] HTTP Codes
-- [] HATEOAS
+- [ ] HATEOAS
 - [ ] Authentication
 - [ ] Autorization
 

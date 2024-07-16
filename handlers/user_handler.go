@@ -10,23 +10,33 @@ import (
 	"github.com/ortizdavid/go-nopain/serialization"
 	"github.com/ortizdavid/go-rest-concepts/entities"
 	"github.com/ortizdavid/go-rest-concepts/models"
+	"gorm.io/gorm"
 )
 
+
 type UserHandler struct {
-}
-
-func (us UserHandler) Routes(router *http.ServeMux) {
-	router.HandleFunc("GET /api/users", us.getAllUsers)
-	router.HandleFunc("GET /api/users/{id}", us.getUser)
-	router.HandleFunc("POST /api/users", us.createUser)
-	router.HandleFunc("PUT /api/users/{id}", us.updateUser)
-	router.HandleFunc("DELETE /api/users/{id}", us.deleteUser)
+	userModel models.UserModel
 }
 
 
-func (UserHandler) getAllUsers(w http.ResponseWriter, r *http.Request) {
-	var userModel models.UserModel
-	users, err := userModel.FindAll()
+func NewUserHandler(db *gorm.DB) *UserHandler {
+	return &UserHandler{
+		userModel: *models.NewUserModel(db),
+	}
+}
+
+
+func (h *UserHandler) Routes(router *http.ServeMux) {
+	router.HandleFunc("GET /api/users", h.getAllUsers)
+	router.HandleFunc("GET /api/users/{id}", h.getUser)
+	router.HandleFunc("POST /api/users", h.createUser)
+	router.HandleFunc("PUT /api/users/{id}", h.updateUser)
+	router.HandleFunc("DELETE /api/users/{id}", h.deleteUser)
+}
+
+
+func (h *UserHandler) getAllUsers(w http.ResponseWriter, r *http.Request) {
+	users, err := h.userModel.FindAll()
 	
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
@@ -37,26 +47,24 @@ func (UserHandler) getAllUsers(w http.ResponseWriter, r *http.Request) {
 		httputils.WriteJsonError(w, "not found", http.StatusNotFound)
 		return
 	}
-	httputils.WriteJson(w, http.StatusOK, users, count)
+	httputils.WriteJson(w, http.StatusOK, users)
 }
 
 
-func (UserHandler) getUser(w http.ResponseWriter, r *http.Request) {
-	var userModel models.UserModel
+func (h *UserHandler) getUser(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	userId := conversion.StringToInt(id)
 
-	user, err := userModel.FindById(userId)
+	user, err := h.userModel.FindById(userId)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)
 		return
 	}
-	httputils.WriteJsonSimple(w, http.StatusOK, user)
+	httputils.WriteJson(w, http.StatusOK, user)
 }
 
 
-func (UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
-	var userModel models.UserModel
+func (h *UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	var user entities.User
 
 	if err := serialization.DecodeJson(r.Body, &user); err != nil {
@@ -64,13 +72,11 @@ func (UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	exists, _ := userModel.ExistsRecord("user_name", user.UserName)
+	exists, _ := h.userModel.ExistsRecord("user_name", user.UserName)
 	if exists {
 		httputils.WriteJsonError(w, "Username'"+user.UserName+ "' exists", http.StatusConflict)
 		return
 	}
-
-	user.UserId = userModel.LastInsertId
 	user.Active = "Yes"
 	user.Password = encryption.HashPassword(user.Password)
 	user.UniqueId = encryption.GenerateUUID()
@@ -78,22 +84,21 @@ func (UserHandler) createUser(w http.ResponseWriter, r *http.Request) {
 	user.CreatedAt = time.Now()
 	user.UpdatedAt = time.Now()
 
-	_, err := userModel.Create(user)
+	_, err := h.userModel.Create(user)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return 
 	}
-	httputils.WriteJsonSimple(w, http.StatusCreated, user)
+	httputils.WriteJson(w, http.StatusCreated, user)
 }
 
 
-func (UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
-	var userModel models.UserModel
+func (h *UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 	var updatedUser entities.User
 	id := r.PathValue("id")
 	userId := conversion.StringToInt(id)
 
-	user, err := userModel.FindById(userId)
+	user, err := h.userModel.FindById(userId)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)
 		return
@@ -108,29 +113,28 @@ func (UserHandler) updateUser(w http.ResponseWriter, r *http.Request) {
 	user.Active = updatedUser.Active
 	user.UpdatedAt = time.Now()
 
-	_, err = userModel.Update(user)
+	_, err = h.userModel.Update(user)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	httputils.WriteJsonSimple(w, http.StatusOK, updatedUser)
+	httputils.WriteJson(w, http.StatusOK, updatedUser)
 }
 
 
-func (UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
-	var userModel models.UserModel
+func (h *UserHandler) deleteUser(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	userId := conversion.StringToInt(id)
 
-	user, err := userModel.FindById(userId)
+	user, err := h.userModel.FindById(userId)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusNotFound)
 		return 
 	}
-	_, err = userModel.Delete(user)
+	_, err = h.userModel.Delete(user)
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	httputils.WriteJsonSimple(w, http.StatusNoContent, nil)
+	httputils.WriteJson(w, http.StatusNoContent, nil)
 }

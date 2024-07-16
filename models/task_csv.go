@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"time"
-
 	"github.com/ortizdavid/go-nopain/conversion"
 	"github.com/ortizdavid/go-nopain/encryption"
 	"github.com/ortizdavid/go-rest-concepts/entities"

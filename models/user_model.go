@@ -1,90 +1,72 @@
 package models
 
 import (
-	"time"
-
-	"github.com/ortizdavid/go-nopain/encryption"
-	"github.com/ortizdavid/go-rest-concepts/config"
 	"github.com/ortizdavid/go-rest-concepts/entities"
 	"gorm.io/gorm"
 )
 
 type UserModel struct {
-	LastInsertId int
+	db *gorm.DB
 }
 
-func (userModel *UserModel) Create(user entities.User) (*gorm.DB, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
-	user.UniqueId = encryption.GenerateUUID()
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
-	result := db.Create(&user)
+func NewUserModel(db *gorm.DB) *UserModel {
+	return &UserModel{db: db}
+}
+
+func (model UserModel) Create(user entities.User) (*gorm.DB, error) {
+	result := model.db.Create(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	userModel.LastInsertId = user.UserId
 	return result, nil
 }
 
-func (UserModel) FindAll() ([]entities.User, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) FindAll() ([]entities.User, error) {
 	var users []entities.User
-	result := db.Find(&users)
+	result := model.db.Find(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return users, nil
 }
 
-func (UserModel) Update(user entities.User) (*gorm.DB, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
-	result := db.Save(&user)
+func (model UserModel) Update(user entities.User) (*gorm.DB, error) {
+	result := model.db.Save(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return result, nil
 }
 
-func (UserModel) Delete(user entities.User) (*gorm.DB, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
-	result := db.Delete(&user)
+func (model UserModel) Delete(user entities.User) (*gorm.DB, error) {
+	result := model.db.Delete(&user)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return result, nil
 }
 
-func (UserModel) FindById(id int) (entities.User, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) FindById(id int) (entities.User, error) {
 	var user entities.User
-	result := db.First(&user, id)
+	result := model.db.First(&user, id)
 	if result.Error != nil {
 		return entities.User{}, result.Error
 	}
 	return user, nil
 }
 
-func (UserModel) FindByUniqueId(uniqueId string) (entities.User, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) FindByUniqueId(uniqueId string) (entities.User, error) {
 	var user entities.User
-	result := db.First(&user, "unique_id=?", uniqueId)
+	result := model.db.First(&user, "unique_id=?", uniqueId)
 	if result.Error != nil {
 		return entities.User{}, result.Error
 	}
 	return user, nil
 }
 
-func (UserModel) FindByUserName(userName string) (entities.User, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) FindByUserName(userName string) (entities.User, error) {
 	var user entities.User
-	result := db.First(&user, "user_name=?", userName)
+	result := model.db.First(&user, "user_name=?", userName)
 	if result.Error != nil {
 		return entities.User{}, result.Error
 	}
@@ -92,34 +74,27 @@ func (UserModel) FindByUserName(userName string) (entities.User, error) {
 }
 
 
-func (UserModel) Search(param interface{}) ([]entities.UserData, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) Search(param interface{}) ([]entities.UserData, error) {
 	var users []entities.UserData
-	result := db.Raw("SELECT * FROM view_user_data WHERE user_name=?", param).Scan(&users)
+	result := model.db.Raw("SELECT * FROM view_user_data WHERE user_name=?", param).Scan(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return users, nil
 }
 
-func (UserModel) Count() (int64, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) Count() (int64, error) {
 	var count int64
-	result := db.Table("users").Count(&count)
+	result := model.db.Table("users").Count(&count)
 	if result.Error != nil {
 		return 0, result.Error
 	}
 	return count, nil
 }
 
-
-func (UserModel) GetDataById(id int) (entities.UserData, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) GetDataById(id int) (entities.UserData, error) {
 	var userData entities.UserData
-	result := db.Raw("SELECT * FROM view_user_data WHERE user_id=?", id).Scan(&userData)
+	result := model.db.Raw("SELECT * FROM view_user_data WHERE user_id=?", id).Scan(&userData)
 	if result.Error != nil {
 		return entities.UserData{}, result.Error
 	}
@@ -127,22 +102,18 @@ func (UserModel) GetDataById(id int) (entities.UserData, error) {
 }
 
 
-func (UserModel) FindAllData() ([]entities.UserData, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) FindAllData() ([]entities.UserData, error) {
 	var users []entities.UserData
-	result := db.Raw("SELECT * FROM view_user_data").Scan(&users)
+	result := model.db.Raw("SELECT * FROM view_user_data").Scan(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
 	return users, nil
 }
 
-func (UserModel) FindAllDataLimit(start int, end int) ([]entities.UserData, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) FindAllDataLimit(start int, end int) ([]entities.UserData, error) {
 	var users []entities.UserData
-	result := db.Raw("SELECT * FROM view_user_data LIMIT ?, ?", start, end).Scan(&users)
+	result := model.db.Raw("SELECT * FROM view_user_data LIMIT ?, ?", start, end).Scan(&users)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -150,11 +121,9 @@ func (UserModel) FindAllDataLimit(start int, end int) ([]entities.UserData, erro
 }
 
 
-func (UserModel) ExistsRecord(fieldName string, value any) (bool, error) {
-	db, _ := config.ConnectDB()
-	defer config.DisconnectDB(db)
+func (model UserModel) ExistsRecord(fieldName string, value any) (bool, error) {
 	var user entities.User
-	result := db.Where(fieldName+" = ?", value).First(&user)
+	result := model.db.Where(fieldName+" = ?", value).First(&user)
 	if result.Error != nil {
 		return false, result.Error
 	}
