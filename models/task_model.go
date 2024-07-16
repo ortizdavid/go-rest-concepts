@@ -129,13 +129,13 @@ func (model TaskModel) FindAllDataByUserIdLimit(userId int, start int, end int) 
 	return tasks, nil
 }
 
-func (model TaskModel) Count() (int64, error) {
+func (model TaskModel) Count() int64 {
 	var count int64
 	result := model.db.Table("tasks").Count(&count)
 	if result.Error != nil {
-		return 0, result.Error
+		return 0
 	}
-	return count, nil
+	return count
 }
 
 func (model TaskModel) ExistsRecord(fieldName string, value any) (bool, error) {

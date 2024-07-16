@@ -8,8 +8,8 @@ type StatisticCount struct {
 }
 
 func NewStatisticsCount(db *gorm.DB) StatisticCount {
-	countUsers, _ :=  NewUserModel(db).Count()
-	countTasks, _ := NewTaskModel(db).Count()
+	countUsers :=  NewUserModel(db).Count()
+	countTasks := NewTaskModel(db).Count()
 
 	return StatisticCount{
 		Users:           countUsers,

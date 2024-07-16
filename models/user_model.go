@@ -83,13 +83,13 @@ func (model UserModel) Search(param interface{}) ([]entities.UserData, error) {
 	return users, nil
 }
 
-func (model UserModel) Count() (int64, error) {
+func (model UserModel) Count() (int64) {
 	var count int64
 	result := model.db.Table("users").Count(&count)
 	if result.Error != nil {
-		return 0, result.Error
+		return 0
 	}
-	return count, nil
+	return count
 }
 
 func (model UserModel) GetDataById(id int) (entities.UserData, error) {
