@@ -111,6 +111,15 @@ func (model TaskModel) FindAllData() ([]entities.TaskData, error) {
 	return tasks, nil
 }
 
+func (model TaskModel) FindAllDataLimit(start int, end int) ([]entities.TaskData, error) {
+	var tasks []entities.TaskData
+	result := model.db.Raw("SELECT * FROM view_task_data LIMIT ?, ?", start, end).Scan(&tasks)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return tasks, nil
+}
+
 func (model TaskModel) FindAllDataByUserIdLimit(userId int, start int, end int) ([]entities.TaskData, error) {
 	var tasks []entities.TaskData
 	result := model.db.Raw("SELECT * FROM view_task_data WHERE user_id=? LIMIT ?, ?", userId, start, end).Scan(&tasks)

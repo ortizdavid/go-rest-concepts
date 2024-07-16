@@ -41,8 +41,10 @@ func (h TaskHandler) Routes(router *http.ServeMux) {
 
 
 func (h TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.taskModel.FindAll()
-	count := len(tasks)
+	currentPage, limit := GetCurrentPageAndLimit(r)
+
+	tasks, err := h.taskModel.FindAllDataLimit(currentPage, limit)
+	count, _ := h.taskModel.Count()
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -51,7 +53,7 @@ func (h TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
 		httputils.WriteJsonError(w, "Tasks not found", http.StatusNotFound)
 		return
 	}
-	httputils.WriteJson(w, http.StatusOK, tasks)
+	httputils.WriteJsonPaginated(w, r, tasks, int(count), currentPage, limit)
 }
 
 
@@ -138,8 +140,9 @@ func (h TaskHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 
 
 func (h TaskHandler) getAllTasksXml(w http.ResponseWriter, r *http.Request) {
-	tasks, err := h.taskModel.FindAll()
-	count := len(tasks)
+	currentPage, limit := GetCurrentPageAndLimit(r)
+	tasks, err := h.taskModel.FindAllDataLimit(currentPage, limit)
+	count, _ := h.taskModel.Count()
 	if err != nil {
 		httputils.WriteXmlError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -148,7 +151,7 @@ func (h TaskHandler) getAllTasksXml(w http.ResponseWriter, r *http.Request) {
 		httputils.WriteXmlError(w, "Tasks not found", http.StatusNotFound)
 		return
 	}
-	httputils.WriteXml(w, http.StatusOK, tasks)
+	httputils.WriteXmlPaginated(w, r, tasks, int(count), currentPage, limit)
 }
 
 

@@ -36,18 +36,19 @@ func (h *UserHandler) Routes(router *http.ServeMux) {
 
 
 func (h *UserHandler) getAllUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := h.userModel.FindAll()
+	currentPage, limit := GetCurrentPageAndLimit(r)
+	users, err := h.userModel.FindAllDataLimit(currentPage, limit)
+	count, _ := h.userModel.Count()
 	
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	count := len(users)
 	if count == 0 {
-		httputils.WriteJsonError(w, "not found", http.StatusNotFound)
+		httputils.WriteJsonError(w, "unot found", http.StatusNotFound)
 		return
 	}
-	httputils.WriteJson(w, http.StatusOK, users)
+	httputils.WriteJsonPaginated(w, r, users, int(count), currentPage, limit)
 }
 
 
