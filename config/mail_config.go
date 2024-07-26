@@ -1,7 +1,6 @@
 package config
 
 import (
-	"github.com/ortizdavid/go-nopain/conversion"
 	"github.com/ortizdavid/go-nopain/mailer"
 )
 
@@ -26,6 +25,6 @@ func MailSMTPHost() string {
 	return GetEnv("MAIL_SMTP_HOST")
 }
 
-func MailSMTPPort() int {
-	return conversion.StringToInt(GetEnv("MAIL_SMTP_PORT"))
+func MailSMTPPort() string {
+	return GetEnv("MAIL_SMTP_PORT")
 }

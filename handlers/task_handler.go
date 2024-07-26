@@ -44,7 +44,7 @@ func (h TaskHandler) getAllTasks(w http.ResponseWriter, r *http.Request) {
 	currentPage, limit := GetCurrentPageAndLimit(r)
 
 	tasks, err := h.taskModel.FindAllDataLimit(currentPage, limit)
-	count := int(h.taskModel.Count())
+	count := h.taskModel.Count()
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -142,7 +142,7 @@ func (h TaskHandler) deleteTask(w http.ResponseWriter, r *http.Request) {
 func (h TaskHandler) getAllTasksXml(w http.ResponseWriter, r *http.Request) {
 	currentPage, limit := GetCurrentPageAndLimit(r)
 	tasks, err := h.taskModel.FindAllDataLimit(currentPage, limit)
-	count := int(h.taskModel.Count())
+	count := h.taskModel.Count()
 	if err != nil {
 		httputils.WriteXmlError(w, err.Error(), http.StatusInternalServerError)
 		return

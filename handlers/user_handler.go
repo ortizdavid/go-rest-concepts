@@ -38,7 +38,7 @@ func (h *UserHandler) Routes(router *http.ServeMux) {
 func (h *UserHandler) getAllUsers(w http.ResponseWriter, r *http.Request) {
 	currentPage, limit := GetCurrentPageAndLimit(r)
 	users, err := h.userModel.FindAllDataLimit(currentPage, limit)
-	count := int(h.userModel.Count())
+	count := h.userModel.Count()
 	
 	if err != nil {
 		httputils.WriteJsonError(w, err.Error(), http.StatusInternalServerError)
